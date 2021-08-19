@@ -164,7 +164,15 @@ class CommandMapping
         'searchPleskAndVirtuozzoItemRequest' => [
             self::COMMAND_MAP_METHOD => 'listItems',
             self::COMMAND_MAP_CLASS => LicenseServiceApi::class
-        ]
+        ],
+        'createPleskLicenseRequest' => [
+            self::COMMAND_MAP_METHOD => 'createPleskLicense',
+            self::COMMAND_MAP_CLASS => LicenseServiceApi::class
+        ],
+        'retrievePleskLicenseRequest' => [
+            self::COMMAND_MAP_METHOD => 'getPleskLicense',
+            self::COMMAND_MAP_CLASS => LicenseServiceApi::class
+        ],
     ];
 
     /**

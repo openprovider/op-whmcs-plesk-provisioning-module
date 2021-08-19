@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Database\Capsule\Manager as Capsule;
+
 if (!defined('WHMCS')) {
     die('This file cannot be accessed directly');
 }
@@ -31,14 +33,11 @@ function openprovider_MetaData()
 
 function openprovider_ConfigOptions()
 {
-    $licenseTypes = getLicenseTypes();
-
     return [
         'license' => [
             'FriendlyName' => 'License type',
-            'Type' => 'dropdown',
+            'Type' => 'text',
             'SimpleMode' => true,
-            'Options' => $licenseTypes,
         ],
         'forWhat' => [
             'FriendlyName' => 'Use for VPS or regular server',
@@ -49,23 +48,99 @@ function openprovider_ConfigOptions()
                 'server' => 'Regular server',
             ],
         ],
-        'useIp' => [
-            'FriendlyName' => 'Should use the IP address of the VPS or regular server',
-            'Type' => 'yesno',
-            'SimpleMode' => false,
-            'Default' => 'no',
+        'period' => [
+            'FriendlyName' => 'License period (months)',
+            'Type' => 'dropdown',
+            'SimpleMode' => true,
+            'Options' => [1, 12, 24],
         ],
         'ipRequired' => [
             'FriendlyName' => 'IP Address is required, and there is no option for IP binding',
             'Type' => 'yesno',
-            'SimpleMode' => false,
+            'SimpleMode' => true,
             'Default' => 'no',
         ],
-        'welcomeEmail' => [
-            'FriendlyName' => 'Welcome Email',
-            'Type' => 'textarea',
-            'SimpleMode' => false,
-            'Description' => 'Enter your welcome email.'
-        ]
     ];
+}
+
+function openprovider_CreateAccount($params)
+{
+    $billingCycles = [
+        'monthly' => 1,
+        'annually' => 12,
+        'biennially' => 24,
+    ];
+
+    $licenseType = $params['configoption1'];
+    $restrictIpBinding = !empty($params['configoption4']) && $params['configoption4'] == 'on';
+    $period = $params['configoption3'] ?? 1;
+    $ipAddressBinding = array_values($params['customfields'])[2];
+
+    $api = getApi();
+
+    $argsCreatePleskLicense = [
+        'items' => [
+            $licenseType
+        ],
+        'period' => $period,
+        'restrictIpBinding' => $restrictIpBinding,
+        'ipAddressBinding' => $ipAddressBinding,
+    ];
+
+    $createPleskLicenseResponse = $api->call('createPleskLicenseRequest', $argsCreatePleskLicense);
+
+    if ($createPleskLicenseResponse->getCode() != 0) {
+        return $createPleskLicenseResponse->getMessage();
+    }
+
+    $pleskLicenseKeyId = $createPleskLicenseResponse->getData()['keyId'];
+
+    $getPleskLicenseResponse = $api->call('retrievePleskLicenseRequest', [
+        'keyId' => $pleskLicenseKeyId
+    ]);
+
+    if ($getPleskLicenseResponse->getCode() != 0) {
+        return $getPleskLicenseResponse->getMessage();
+    }
+
+    $pleskLicense = $getPleskLicenseResponse->getData();
+//    Mocked data to test creating plesk license
+//    $pleskLicense = [
+//        'keyNumber' => 123456789,
+//        'activationCode' => 987,
+//    ];
+
+    $productId = $params['pid'];
+    $serviceId = $params['serviceid'];
+
+    $licenseNumber = $pleskLicense['keyNumber'];
+    $activationCode = $pleskLicense['activationCode'];
+
+    $newCustomFieldsValues = [
+        $licenseNumber,
+        $activationCode
+    ];
+
+    try {
+        $customFields = Capsule::table('tblcustomfields')
+            ->where('relid', $productId)
+            ->get();
+
+        $i = 0;
+        foreach ($customFields as $customField) {
+            if ($i > 1) {
+                break;
+            }
+            Capsule::table('tblcustomfieldsvalues')
+                ->where('fieldid', $customField->id)
+                ->where('relid', $serviceId)
+                ->update([
+                    'value' => $newCustomFieldsValues[$i++]
+                ]);
+        }
+    } catch (Exception $e) {
+        return $e->getMessage();
+    }
+
+    return 'success';
 }
