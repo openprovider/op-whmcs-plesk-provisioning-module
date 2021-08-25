@@ -8,6 +8,8 @@ if (!defined('WHMCS')) {
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 
+const DISPLAY_NAME = 'Openprovider-plesk';
+
 /**
  * Define module related meta data.
  *
@@ -21,7 +23,7 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 function openprovider_MetaData()
 {
     return [
-        'DisplayName' => 'Openprovider-plesk',
+        'DisplayName' => DISPLAY_NAME,
         'APIVersion' => '1.1', // Use API Version 1.1
         'RequiresServer' => true, // Set true if module requires a server to work
         'DefaultNonSSLPort' => '1111', // Default Non-SSL Connection Port
@@ -65,38 +67,41 @@ function openprovider_ConfigOptions()
 
 function openprovider_CreateAccount($params)
 {
-    $billingCycles = [
-        'monthly' => 1,
-        'annually' => 12,
-        'biennially' => 24,
-    ];
-
     $licenseType = $params['configoption1'];
-    $restrictIpBinding = !empty($params['configoption4']) && $params['configoption4'] == 'on';
     $period = $params['configoption3'] ?? 1;
-    $ipAddressBinding = array_values($params['customfields'])[2];
+    // These parameters need for future
+//    $restrictIpBinding = !empty($params['configoption4']) && $params['configoption4'] == 'on';
+//    $ipAddressBinding = array_values($params['customfields'])[2];
 
     $api = getApi();
+
+    if (is_null($api)) {
+        return "Credentials are incorrect or api is not configured!";
+    }
 
     $argsCreatePleskLicense = [
         'items' => [
             $licenseType
         ],
         'period' => $period,
-        'restrictIpBinding' => $restrictIpBinding,
-        'ipAddressBinding' => $ipAddressBinding,
+        // These parameters need for future
+//        'restrictIpBinding' => $restrictIpBinding,
+//        'ipAddressBinding' => $ipAddressBinding,
     ];
 
-    $createPleskLicenseResponse = $api->call('createPleskLicenseRequest', $argsCreatePleskLicense);
+    $createPleskLicenseResponse = makeApiCall($api, 'createPleskLicenseRequest', $argsCreatePleskLicense);
+
+    // I don't know why, but it works
+    sleep(1);
 
     if ($createPleskLicenseResponse->getCode() != 0) {
         return $createPleskLicenseResponse->getMessage();
     }
 
-    $pleskLicenseKeyId = $createPleskLicenseResponse->getData()['keyId'];
+    $pleskLicenseKeyId = $createPleskLicenseResponse->getData()['key_id'];
 
-    $getPleskLicenseResponse = $api->call('retrievePleskLicenseRequest', [
-        'keyId' => $pleskLicenseKeyId
+    $getPleskLicenseResponse = makeApiCall($api, 'retrievePleskLicenseRequest', [
+        'key_id' => $pleskLicenseKeyId
     ]);
 
     if ($getPleskLicenseResponse->getCode() != 0) {
@@ -106,15 +111,15 @@ function openprovider_CreateAccount($params)
     $pleskLicense = $getPleskLicenseResponse->getData();
 //    Mocked data to test creating plesk license
 //    $pleskLicense = [
-//        'keyNumber' => 123456789,
-//        'activationCode' => 987,
+//        'key_number' => 123456789,
+//        'activation_code' => 987,
 //    ];
 
     $productId = $params['pid'];
     $serviceId = $params['serviceid'];
 
-    $licenseNumber = $pleskLicense['keyNumber'];
-    $activationCode = $pleskLicense['activationCode'];
+    $licenseNumber = $pleskLicense['key_number'];
+    $activationCode = $pleskLicense['activation_code'];
 
     $newCustomFieldsValues = [
         $licenseNumber,
