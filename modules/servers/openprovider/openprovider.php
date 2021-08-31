@@ -8,7 +8,7 @@ if (!defined('WHMCS')) {
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 
-const DISPLAY_NAME = 'Openprovider-plesk';
+const DISPLAY_NAME = 'Openprovider Plesk';
 
 /**
  * Define module related meta data.
@@ -25,7 +25,7 @@ function openprovider_MetaData()
     return [
         'DisplayName' => DISPLAY_NAME,
         'APIVersion' => '1.1', // Use API Version 1.1
-        'RequiresServer' => true, // Set true if module requires a server to work
+        'RequiresServer' => false, // Set true if module requires a server to work
         'DefaultNonSSLPort' => '1111', // Default Non-SSL Connection Port
         'DefaultSSLPort' => '1112', // Default SSL Connection Port
         'ServiceSingleSignOnLabel' => 'Login to Panel as User',
@@ -54,7 +54,7 @@ function openprovider_ConfigOptions()
             'FriendlyName' => 'License period (months)',
             'Type' => 'dropdown',
             'SimpleMode' => true,
-            'Options' => [1, 12, 24],
+            'Options' => [1 => 1, 12 => 12, 24 => 24],
         ],
         'ipRequired' => [
             'FriendlyName' => 'IP Address is required, and there is no option for IP binding',
@@ -73,7 +73,7 @@ function openprovider_CreateAccount($params)
 //    $restrictIpBinding = !empty($params['configoption4']) && $params['configoption4'] == 'on';
 //    $ipAddressBinding = array_values($params['customfields'])[2];
 
-    $api = getApi();
+    $api = initApi();
 
     if (is_null($api)) {
         return "Credentials are incorrect or api is not configured!";
