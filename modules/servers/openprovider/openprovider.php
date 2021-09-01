@@ -41,26 +41,11 @@ function openprovider_ConfigOptions()
             'Type' => 'text',
             'SimpleMode' => true,
         ],
-        'forWhat' => [
-            'FriendlyName' => 'Use for VPS or regular server',
-            'Type' => 'dropdown',
-            'SimpleMode' => true,
-            'Options' => [
-                'vps' => 'VPS',
-                'server' => 'Regular server',
-            ],
-        ],
         'period' => [
             'FriendlyName' => 'License period (months)',
             'Type' => 'dropdown',
             'SimpleMode' => true,
             'Options' => [1 => 1, 12 => 12, 24 => 24],
-        ],
-        'ipRequired' => [
-            'FriendlyName' => 'IP Address is required, and there is no option for IP binding',
-            'Type' => 'yesno',
-            'SimpleMode' => true,
-            'Default' => 'no',
         ],
     ];
 }
@@ -68,12 +53,9 @@ function openprovider_ConfigOptions()
 function openprovider_CreateAccount($params)
 {
     $licenseType = $params['configoption1'];
-    $period = $params['configoption3'] ?? 1;
-    // These parameters need for future
-//    $restrictIpBinding = !empty($params['configoption4']) && $params['configoption4'] == 'on';
-//    $ipAddressBinding = array_values($params['customfields'])[2];
+    $period = $params['configoption2'] ?? 1;
 
-    $api = initApi();
+    $api = getPleskApi();
 
     if (is_null($api)) {
         return "Credentials are incorrect or api is not configured!";

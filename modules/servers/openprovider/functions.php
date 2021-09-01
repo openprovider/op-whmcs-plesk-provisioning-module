@@ -14,7 +14,7 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'resp
  *
  * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
  */
-function initApi(): ?OpenProviderApi
+function getPleskApi(): ?OpenProviderApi
 {
     $api = new OpenProviderApi();
 
