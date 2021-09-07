@@ -3,7 +3,6 @@
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'openprovider_api.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'response.php';
 
-
 /**
  * This method takes OP credentials from configs.php file.
  * Then it makes request to OP to get token.
@@ -44,7 +43,7 @@ function getPleskApi(): ?OpenProviderApi
 /**
  * @param OpenProviderApi $apiClient configured api client
  * @param string $cmd api command
- * @param array $args
+ * @param array $args arguments for api call
  *
  * @return Response response data.
  */
@@ -102,6 +101,22 @@ function getCredentials(): array
 }
 
 /**
+ * @return array|string[] [
+ *                          0 => 'license number name',
+ *                          1 => 'activation code name'
+ *                        ]
+ */
+function getCustomFieldNames(): array
+{
+    $configs = getConfigs();
+
+    return [
+        $configs['service_custom_fields_0'] ?? 'License Number',
+        $configs['service_custom_fields_1'] ?? 'Activation Code',
+    ];
+}
+
+/**
  * @return array with configs from configs.php file
  */
 function getConfigs(): array
@@ -116,17 +131,40 @@ function getConfigs(): array
 }
 
 /**
- * Print data in browser console
+ * @param string $licenseNumberLabel label for license number
+ * @param string $licenseNumber license number
+ * @param string $activationCodeLabel label for activation code
+ * @param string $activationCode activation code
  *
- * @param mixed $data
+ * @return string HTML template for op-plesk product and product addon
  */
-function consolePrint($data)
+function getHtmlTemplateFieldsForProductAddon(
+    $licenseNumberLabel,
+    $licenseNumber,
+    $activationCodeLabel,
+    $activationCode
+): string
 {
-    $data = json_encode($data);
-
-    echo "
-        <script>
-            console.log({$data}); 
-        </script>
-    ";
+    return sprintf('
+<div class="tab-content bg-white product-details-tab-container">
+<div class="tab-pane fade text-center active show" role="tabpanel" id="additionalinfo">
+<div class="row">
+<div class="col-sm-5">
+<strong>%s</strong>
+</div>
+<div class="col-sm-7 text-left">
+%s
+</div>
+</div>
+<div class="row">
+<div class="col-sm-5">
+<strong>%s</strong>
+</div>
+<div class="col-sm-7 text-left">
+%s
+</div>
+</div>
+</div>
+</div>
+    ', $licenseNumberLabel, $licenseNumber, $activationCodeLabel, $activationCode);
 }

@@ -10,6 +10,11 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 
 const DISPLAY_NAME = 'Openprovider Plesk';
 
+const LICENSE_TYPE_CONFIGURATION_NAME = 'License Type';
+const LICENSE_PERIOD_CONFIGURATION_NAME = 'License period (months)';
+
+const ERROR_API_CLIENT_NOT_CONFIGURED = 'Credentials are incorrect or api is not configured!';
+
 /**
  * Define module related meta data.
  *
@@ -37,12 +42,12 @@ function openprovider_ConfigOptions()
 {
     return [
         'license' => [
-            'FriendlyName' => 'License type',
+            'FriendlyName' => LICENSE_TYPE_CONFIGURATION_NAME,
             'Type' => 'text',
             'SimpleMode' => true,
         ],
         'period' => [
-            'FriendlyName' => 'License period (months)',
+            'FriendlyName' => LICENSE_PERIOD_CONFIGURATION_NAME,
             'Type' => 'dropdown',
             'SimpleMode' => true,
             'Options' => [1 => 1, 12 => 12, 24 => 24],
@@ -58,7 +63,7 @@ function openprovider_CreateAccount($params)
     $api = getPleskApi();
 
     if (is_null($api)) {
-        return "Credentials are incorrect or api is not configured!";
+        return ERROR_API_CLIENT_NOT_CONFIGURED;
     }
 
     $argsCreatePleskLicense = [
@@ -66,9 +71,6 @@ function openprovider_CreateAccount($params)
             $licenseType
         ],
         'period' => $period,
-        // These parameters need for future
-//        'restrictIpBinding' => $restrictIpBinding,
-//        'ipAddressBinding' => $ipAddressBinding,
     ];
 
     $createPleskLicenseResponse = makeApiCall($api, 'createPleskLicenseRequest', $argsCreatePleskLicense);
@@ -91,43 +93,33 @@ function openprovider_CreateAccount($params)
     }
 
     $pleskLicense = $getPleskLicenseResponse->getData();
-//    Mocked data to test creating plesk license
-//    $pleskLicense = [
-//        'key_number' => 123456789,
-//        'activation_code' => 987,
-//    ];
-
-    $productId = $params['pid'];
-    $serviceId = $params['serviceid'];
 
     $licenseNumber = $pleskLicense['key_number'];
     $activationCode = $pleskLicense['activation_code'];
 
-    $newCustomFieldsValues = [
-        $licenseNumber,
-        $activationCode
-    ];
-
     try {
-        $customFields = Capsule::table('tblcustomfields')
-            ->where('relid', $productId)
-            ->get();
+        $customFieldNames = getCustomFieldNames();
 
-        $i = 0;
-        foreach ($customFields as $customField) {
-            if ($i > 1) {
-                break;
-            }
-            Capsule::table('tblcustomfieldsvalues')
-                ->where('fieldid', $customField->id)
-                ->where('relid', $serviceId)
-                ->update([
-                    'value' => $newCustomFieldsValues[$i++]
-                ]);
-        }
+        $params['model']->serviceProperties->save([$customFieldNames[0] => $licenseNumber]);
+        $params['model']->serviceProperties->save([$customFieldNames[1] => $activationCode]);
     } catch (Exception $e) {
         return $e->getMessage();
     }
 
     return 'success';
+}
+
+/**
+ * @param array $params available parameters from whmcs
+ *
+ * @return string|void HTML template for op-plesk product and product addon
+ */
+function openprovider_ClientArea($params)
+{
+    $customFieldNames = array_keys($params['customfields']);
+
+    $licenseNumber = $params['model']->serviceProperties->get($customFieldNames[0]);
+    $activationCode = $params['model']->serviceProperties->get($customFieldNames[1]);
+
+    return getHtmlTemplateFieldsForProductAddon($customFieldNames[0], $licenseNumber, $customFieldNames[1], $activationCode);
 }
