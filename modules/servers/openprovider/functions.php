@@ -131,18 +131,20 @@ function getConfigs(): array
 }
 
 /**
+ * Return HTML template to render on product and product addon page
+ *
  * @param string $licenseNumberLabel label for license number
  * @param string $licenseNumber license number
  * @param string $activationCodeLabel label for activation code
  * @param string $activationCode activation code
  *
- * @return string HTML template for op-plesk product and product addon
+ * @return string
  */
 function getHtmlTemplateFieldsForProductAddon(
-    $licenseNumberLabel,
-    $licenseNumber,
-    $activationCodeLabel,
-    $activationCode
+    string $licenseNumberLabel,
+    string $licenseNumber,
+    string $activationCodeLabel,
+    string $activationCode
 ): string
 {
     return sprintf('

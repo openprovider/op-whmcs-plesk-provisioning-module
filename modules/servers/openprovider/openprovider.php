@@ -25,7 +25,7 @@ const ERROR_API_CLIENT_NOT_CONFIGURED = 'Credentials are incorrect or api is not
  *
  * @return array
  */
-function openprovider_MetaData()
+function openprovider_MetaData(): array
 {
     return [
         'DisplayName' => DISPLAY_NAME,
@@ -38,7 +38,12 @@ function openprovider_MetaData()
     ];
 }
 
-function openprovider_ConfigOptions()
+/**
+ * Return array to configure module
+ *
+ * @return array[]
+ */
+function openprovider_ConfigOptions(): array
 {
     return [
         'license' => [
@@ -55,7 +60,16 @@ function openprovider_ConfigOptions()
     ];
 }
 
-function openprovider_CreateAccount($params)
+/**
+ * Function creates plesk license in Openprovider
+ *
+ * @param array $params available parameters from whmcs
+ *
+ * @return string
+ *
+ * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
+ */
+function openprovider_CreateAccount($params): string
 {
     $licenseType = $params['configoption1'];
     $period = $params['configoption2'] ?? 1;
@@ -110,11 +124,13 @@ function openprovider_CreateAccount($params)
 }
 
 /**
+ * Function returns HTML template for op-plesk product and product addon to display license data
+ *
  * @param array $params available parameters from whmcs
  *
- * @return string|void HTML template for op-plesk product and product addon
+ * @return string
  */
-function openprovider_ClientArea($params)
+function openprovider_ClientArea($params): string
 {
     $customFieldNames = array_keys($params['customfields']);
 
