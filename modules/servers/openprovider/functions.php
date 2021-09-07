@@ -4,30 +4,25 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'open
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'response.php';
 
 /**
- * This method takes OP credentials from configs.php file.
- * Then it makes request to OP to get token.
- * If token is correct it returns Openprovider api client.
- * Else it returns null.
+ * It returns Openprovider api client or null if credentials are incorrect.
+ *
+ * @param string $username OP username
+ * @param string $password OP password
  *
  * @return OpenProviderApi|null
  *
  * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
  */
-function getPleskApi(): ?OpenProviderApi
+function getPleskApi(string $username, string $password): ?OpenProviderApi
 {
     $api = new OpenProviderApi();
 
-    $api->getConfig()->setHost(OpenProviderApi::API_URL);
+    $api->getConfig()->setHost(OpenProviderApi::API_CTE_URL);
 
-    $credentials = getCredentials();
-
-    if (!empty($credentials['token'])) {
-        $api->getConfig()->setToken($credentials['token']);
-
-        return $api;
-    }
-
-    $tokenRequest = makeApiCall($api, 'generateAuthTokenRequest', getCredentials());
+    $tokenRequest = makeApiCall($api, 'generateAuthTokenRequest', [
+        'username' => $username,
+        'password' => $password,
+    ]);
 
     if ($tokenRequest->getCode() != 0) {
         return null;
@@ -78,26 +73,6 @@ function logApiCall(OpenProviderApi $apiClient): void
             htmlentities($apiClient->getLastRequest()->getArgs()['password'])
         ] : []
     );
-}
-
-/**
- * You should configure your credentials before
- *
- * @return array ['username' => Openprovider username, 'password' => openprovider password]
- */
-function getCredentials(): array
-{
-    $configs = getConfigs();
-
-    $username = $configs['username'] ?? '';
-    $password = $configs['password'] ?? '';
-    $token    = $configs['token'] ?? '';
-
-    return [
-        'username' => $username,
-        'password' => $password,
-        'token'    => $token
-    ];
 }
 
 /**

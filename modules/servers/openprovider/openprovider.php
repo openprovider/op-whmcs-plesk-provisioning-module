@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Database\Capsule\Manager as Capsule;
-
 if (!defined('WHMCS')) {
     die('This file cannot be accessed directly');
 }
@@ -10,6 +8,8 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 
 const DISPLAY_NAME = 'Openprovider Plesk';
 
+const USERNAME_CONFIGURATION_NAME = 'Username';
+const PASSWORD_CONFIGURATION_NAME = 'Password';
 const LICENSE_TYPE_CONFIGURATION_NAME = 'License Type';
 const LICENSE_PERIOD_CONFIGURATION_NAME = 'License period (months)';
 
@@ -46,6 +46,16 @@ function openprovider_MetaData(): array
 function openprovider_ConfigOptions(): array
 {
     return [
+        'username' => [
+            'FriendlyName' => USERNAME_CONFIGURATION_NAME,
+            'Type' => 'text',
+            'SimpleMode' => true,
+        ],
+        'password' => [
+            'FriendlyName' => PASSWORD_CONFIGURATION_NAME,
+            'Type' => 'password',
+            'SimpleMode' => true,
+        ],
         'license' => [
             'FriendlyName' => LICENSE_TYPE_CONFIGURATION_NAME,
             'Type' => 'text',
@@ -71,10 +81,12 @@ function openprovider_ConfigOptions(): array
  */
 function openprovider_CreateAccount($params): string
 {
-    $licenseType = $params['configoption1'];
-    $period = $params['configoption2'] ?? 1;
+    $username = $params['configoption1'];
+    $password = $params['configoption2'];
+    $licenseType = $params['configoption3'];
+    $period = $params['configoption4'] ?? 1;
 
-    $api = getPleskApi();
+    $api = getPleskApi($username, $password);
 
     if (is_null($api)) {
         return ERROR_API_CLIENT_NOT_CONFIGURED;
