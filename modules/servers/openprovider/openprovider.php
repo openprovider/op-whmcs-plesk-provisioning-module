@@ -132,6 +132,7 @@ function openprovider_CreateAccount($params): string
         $customFieldNames = $moduleHelper->getCustomFieldNames();
         $params['model']->serviceProperties->save([$customFieldNames['license_number'] => $licenseNumber]);
         $params['model']->serviceProperties->save([$customFieldNames['activation_code'] => $activationCode]);
+        $params['model']->serviceProperties->save([$customFieldNames['license_name'] => $params['domain'] ?? '']);
     } catch (Exception $e) {
         return $e->getMessage();
     }
