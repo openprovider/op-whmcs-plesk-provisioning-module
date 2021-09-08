@@ -4,7 +4,7 @@ if (!defined('WHMCS')) {
     die('This file cannot be accessed directly');
 }
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'helper.php';
 
 const META_DISPLAY_NAME = 'Openprovider Plesk';
 const META_API_VERSION = '1.1';
@@ -96,9 +96,9 @@ function openprovider_CreateAccount($params): string
     $licenseType = $params['configoption3'];
     $period = $params['configoption4'] ?? 1;
 
-    $api = getPleskApi($username, $password);
+    $moduleHelper = new OpenproviderPleskModuleHelper();
 
-    if (is_null($api)) {
+    if (!$moduleHelper->initApi($username, $password)) {
         return ERROR_API_CLIENT_NOT_CONFIGURED;
     }
 
@@ -109,22 +109,14 @@ function openprovider_CreateAccount($params): string
         'period' => $period,
     ];
 
-    $createPleskLicenseResponse = makeApiCall($api, 'createPleskLicenseRequest', $argsCreatePleskLicense);
-
-    // If you sleep one second, module logs in whmcs creates in right order:
-    // 1. createPleskLicenseRequest
-    // 2. retrievePleskLicenseRequest
-    // Otherwise there is a wrong order:
-    // 1. retrievePleskLicenseRequest
-    // 2. createPleskLicenseRequest
-    sleep(1);
+    $createPleskLicenseResponse = $moduleHelper->call('createPleskLicenseRequest', $argsCreatePleskLicense);
 
     if ($createPleskLicenseResponse->getCode() != 0) {
         return $createPleskLicenseResponse->getMessage();
     }
 
     $pleskLicenseKeyId = $createPleskLicenseResponse->getData()['key_id'];
-    $getPleskLicenseResponse = makeApiCall($api, 'retrievePleskLicenseRequest', [
+    $getPleskLicenseResponse = $moduleHelper->call('retrievePleskLicenseRequest', [
         'key_id' => $pleskLicenseKeyId
     ]);
 
@@ -137,7 +129,7 @@ function openprovider_CreateAccount($params): string
     $activationCode = $pleskLicense['activation_code'];
 
     try {
-        $customFieldNames = getCustomFieldNames();
+        $customFieldNames = $moduleHelper->getCustomFieldNames();
         $params['model']->serviceProperties->save([$customFieldNames['license_number'] => $licenseNumber]);
         $params['model']->serviceProperties->save([$customFieldNames['activation_code'] => $activationCode]);
     } catch (Exception $e) {
@@ -159,9 +151,10 @@ function openprovider_CreateAccount($params): string
 function openprovider_ClientArea($params): string
 {
     $customFieldNames = array_keys($params['customfields']);
+    $moduleHelper = new OpenproviderPleskModuleHelper();
 
     $licenseNumber = $params['model']->serviceProperties->get($customFieldNames[0]);
     $activationCode = $params['model']->serviceProperties->get($customFieldNames[1]);
 
-    return getHtmlTemplateFieldsForProductAddon($customFieldNames[0], $licenseNumber, $customFieldNames[1], $activationCode);
+    return $moduleHelper->getHtmlTemplateFieldsForProductAddon($customFieldNames[0], $licenseNumber, $customFieldNames[1], $activationCode);
 }
