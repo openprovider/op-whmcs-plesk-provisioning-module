@@ -9,15 +9,14 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'resp
  * @param string $username OP username
  * @param string $password OP password
  *
- * @return OpenProviderApi|null
+ * @return OpenproviderApi|null
  *
  * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
  */
-function getPleskApi(string $username, string $password): ?OpenProviderApi
+function getPleskApi(string $username, string $password): ?OpenproviderApi
 {
-    $api = new OpenProviderApi();
-
-    $api->getConfig()->setHost(OpenProviderApi::API_CTE_URL);
+    $api = new OpenproviderApi();
+    $api->getConfig()->setHost(OpenproviderApi::API_CTE_URL);
 
     $tokenRequest = makeApiCall($api, 'generateAuthTokenRequest', [
         'username' => $username,
@@ -36,13 +35,13 @@ function getPleskApi(string $username, string $password): ?OpenProviderApi
 }
 
 /**
- * @param OpenProviderApi $apiClient configured api client
+ * @param OpenproviderApi $apiClient configured api client
  * @param string $cmd api command
  * @param array $args arguments for api call
  *
  * @return Response response data.
  */
-function makeApiCall(OpenProviderApi $apiClient, string $cmd, array $args = []): Response
+function makeApiCall(OpenproviderApi $apiClient, string $cmd, array $args = []): Response
 {
     $apiResponse = $apiClient->call($cmd, $args);
 
@@ -52,14 +51,14 @@ function makeApiCall(OpenProviderApi $apiClient, string $cmd, array $args = []):
 }
 
 /**
- * @param OpenProviderApi $apiClient
+ * @param OpenproviderApi $apiClient
  *
  * @return void
  */
-function logApiCall(OpenProviderApi $apiClient): void
+function logApiCall(OpenproviderApi $apiClient): void
 {
     \logModuleCall(
-        DISPLAY_NAME,
+        META_DISPLAY_NAME,
         $apiClient->getLastRequest()->getCommand(),
         json_encode($apiClient->getLastRequest()->getArgs()),
         json_encode([
@@ -77,8 +76,8 @@ function logApiCall(OpenProviderApi $apiClient): void
 
 /**
  * @return array|string[] [
- *                          0 => 'license number name',
- *                          1 => 'activation code name'
+ *                          'license_number' => 'license number name',
+ *                          'activation_code' => 'activation code name'
  *                        ]
  */
 function getCustomFieldNames(): array
@@ -86,8 +85,8 @@ function getCustomFieldNames(): array
     $configs = getConfigs();
 
     return [
-        $configs['service_custom_fields_0'] ?? 'License Number',
-        $configs['service_custom_fields_1'] ?? 'Activation Code',
+        'license_number' => $configs['service_custom_fields_0'] ?? 'License Number',
+        'activation_code' => $configs['service_custom_fields_1'] ?? 'Activation Code',
     ];
 }
 
@@ -122,26 +121,26 @@ function getHtmlTemplateFieldsForProductAddon(
     string $activationCode
 ): string
 {
-    return sprintf('
+    return <<<HTML
 <div class="tab-content bg-white product-details-tab-container">
 <div class="tab-pane fade text-center active show" role="tabpanel" id="additionalinfo">
 <div class="row">
 <div class="col-sm-5">
-<strong>%s</strong>
+<strong>$licenseNumberLabel</strong>
 </div>
 <div class="col-sm-7 text-left">
-%s
+$licenseNumber
 </div>
 </div>
 <div class="row">
 <div class="col-sm-5">
-<strong>%s</strong>
+<strong>$activationCodeLabel</strong>
 </div>
 <div class="col-sm-7 text-left">
-%s
+$activationCode
 </div>
 </div>
 </div>
 </div>
-    ', $licenseNumberLabel, $licenseNumber, $activationCodeLabel, $activationCode);
+HTML;
 }

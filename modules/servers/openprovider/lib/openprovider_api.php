@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 
-class OpenProviderApi
+class OpenproviderApi
 {
     const API_CLIENT_NAME = 'whmcs-plesk-1';
     const API_URL = 'https://api.openprovider.eu';
@@ -26,22 +26,22 @@ class OpenProviderApi
     /**
      * @var HttpClient
      */
-    private $http_client;
+    private $httpClient;
 
     /**
      * @var CommandMapping
      */
-    private $command_mapping;
+    private $commandMapping;
 
     /**
      * @var ApiConfig
      */
-    private $api_config;
+    private $apiConfig;
 
     /**
      * @var ParamsCreatorFactory
      */
-    private $params_creator_factory;
+    private $paramsCreatorFactory;
 
     /**
      * @var Serializer
@@ -51,21 +51,21 @@ class OpenProviderApi
     /**
      * @var Response
      */
-    private $last_response;
+    private $lastResponse;
 
     /**
      * @var LastRequest
      */
-    private $last_request;
+    private $lastRequest;
 
     public function __construct()
     {
         $this->configuration = new Configuration();
-        $this->command_mapping = new CommandMapping();
-        $this->api_config = new ApiConfig();
-        $this->params_creator_factory = new ParamsCreatorFactory();
+        $this->commandMapping = new CommandMapping();
+        $this->apiConfig = new ApiConfig();
+        $this->paramsCreatorFactory = new ParamsCreatorFactory();
         $this->serializer = new Serializer([new ObjectNormalizer(null, new CamelCaseToSnakeCaseNameConverter())]);
-        $this->http_client = new HttpClient([
+        $this->httpClient = new HttpClient([
             'headers' => [
                 'X-Client' => self::API_CLIENT_NAME
             ]
@@ -85,26 +85,26 @@ class OpenProviderApi
         $response = new Response();
 
         try {
-            $apiClass = $this->command_mapping->getCommandMapping($cmd, CommandMapping::COMMAND_MAP_CLASS);
-            $apiMethod = $this->command_mapping->getCommandMapping($cmd, CommandMapping::COMMAND_MAP_METHOD);
+            $apiClass = $this->commandMapping->getCommandMapping($cmd, CommandMapping::COMMAND_MAP_CLASS);
+            $apiMethod = $this->commandMapping->getCommandMapping($cmd, CommandMapping::COMMAND_MAP_METHOD);
         } catch (\Exception $e) {
             return $this->failedResponse($response, $e->getMessage(), $e->getCode());
         }
 
-        $service = new $apiClass($this->http_client, $this->configuration);
+        $service = new $apiClass($this->httpClient, $this->configuration);
 
-        $service->getConfig()->setHost($this->api_config->getHost());
+        $service->getConfig()->setHost($this->apiConfig->getHost());
 
-        if ($this->api_config->getToken()) {
-            $service->getConfig()->setAccessToken($this->api_config->getToken());
+        if ($this->apiConfig->getToken()) {
+            $service->getConfig()->setAccessToken($this->apiConfig->getToken());
         }
 
-        $this->last_request = new LastRequest();
-        $this->last_request->setArgs($args);
-        $this->last_request->setCommand($cmd);
+        $this->lastRequest = new LastRequest();
+        $this->lastRequest->setArgs($args);
+        $this->lastRequest->setCommand($cmd);
 
         try {
-            $paramsCreator = $this->params_creator_factory->build($cmd);
+            $paramsCreator = $this->paramsCreatorFactory->build($cmd);
             $requestParameters = $paramsCreator->createParameters($args, $service, $apiMethod);
             $reply = $service->$apiMethod(...$requestParameters);
         } catch (\Exception $e) {
@@ -117,7 +117,7 @@ class OpenProviderApi
                 $responseData['desc'] ?? $e->getMessage(),
                 $responseData['code'] ?? $e->getCode()
             );
-            $this->last_response = $return;
+            $this->lastResponse = $return;
 
             return $return;
         }
@@ -125,7 +125,7 @@ class OpenProviderApi
         $data = $this->serializer->normalize($reply->getData());
 
         $return = $this->successResponse($response, $data);
-        $this->last_response = $return;
+        $this->lastResponse = $return;
 
         return $return;
     }
@@ -135,7 +135,7 @@ class OpenProviderApi
      */
     public function getConfig(): ApiConfig
     {
-        return $this->api_config;
+        return $this->apiConfig;
     }
 
     /**
@@ -177,7 +177,7 @@ class OpenProviderApi
      */
     public function getLastRequest(): LastRequest
     {
-        return $this->last_request;
+        return $this->lastRequest;
     }
 
     /**
@@ -185,6 +185,6 @@ class OpenProviderApi
      */
     public function getLastResponse(): Response
     {
-        return $this->last_response;
+        return $this->lastResponse;
     }
 }

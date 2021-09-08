@@ -6,12 +6,18 @@ if (!defined('WHMCS')) {
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 
-const DISPLAY_NAME = 'Openprovider Plesk';
+const META_DISPLAY_NAME = 'Openprovider Plesk';
+const META_API_VERSION = '1.1';
+const META_REQUIRES_SERVER = false;
+const META_DEFAULT_NON_SSL_PORT = '1111';
+const META_DEFAULT_SSL_PORT = '1112';
+const META_SERVICE_SINGLE_SIGN_ON_LABEL = 'Login to Panel as User';
+const META_ADMIN_SINGLE_SIGN_ON_LABEL = 'Login to Panel as Admin';
 
-const USERNAME_CONFIGURATION_NAME = 'Username';
-const PASSWORD_CONFIGURATION_NAME = 'Password';
-const LICENSE_TYPE_CONFIGURATION_NAME = 'License Type';
-const LICENSE_PERIOD_CONFIGURATION_NAME = 'License period (months)';
+const CONFIG_OPTION_USERNAME = 'Username';
+const CONFIG_OPTION_PASSWORD = 'Password';
+const CONFIG_OPTION_LICENSE_TYPE = 'License Type';
+const CONFIG_OPTION_LICENSE_PERIOD = 'License period (months)';
 
 const ERROR_API_CLIENT_NOT_CONFIGURED = 'Credentials are incorrect or api is not configured!';
 
@@ -28,18 +34,20 @@ const ERROR_API_CLIENT_NOT_CONFIGURED = 'Credentials are incorrect or api is not
 function openprovider_MetaData(): array
 {
     return [
-        'DisplayName' => DISPLAY_NAME,
-        'APIVersion' => '1.1', // Use API Version 1.1
-        'RequiresServer' => false, // Set true if module requires a server to work
-        'DefaultNonSSLPort' => '1111', // Default Non-SSL Connection Port
-        'DefaultSSLPort' => '1112', // Default SSL Connection Port
-        'ServiceSingleSignOnLabel' => 'Login to Panel as User',
-        'AdminSingleSignOnLabel' => 'Login to Panel as Admin',
+        'DisplayName' => META_DISPLAY_NAME,
+        'APIVersion' => META_API_VERSION,
+        'RequiresServer' => META_REQUIRES_SERVER,
+        'DefaultNonSSLPort' => META_DEFAULT_NON_SSL_PORT,
+        'DefaultSSLPort' => META_DEFAULT_SSL_PORT,
+        'ServiceSingleSignOnLabel' => META_SERVICE_SINGLE_SIGN_ON_LABEL,
+        'AdminSingleSignOnLabel' => META_ADMIN_SINGLE_SIGN_ON_LABEL,
     ];
 }
 
 /**
  * Return array to configure module
+ *
+ * @see https://developers.whmcs.com/provisioning-modules/config-options/
  *
  * @return array[]
  */
@@ -47,22 +55,22 @@ function openprovider_ConfigOptions(): array
 {
     return [
         'username' => [
-            'FriendlyName' => USERNAME_CONFIGURATION_NAME,
+            'FriendlyName' => CONFIG_OPTION_USERNAME,
             'Type' => 'text',
             'SimpleMode' => true,
         ],
         'password' => [
-            'FriendlyName' => PASSWORD_CONFIGURATION_NAME,
+            'FriendlyName' => CONFIG_OPTION_PASSWORD,
             'Type' => 'password',
             'SimpleMode' => true,
         ],
         'license' => [
-            'FriendlyName' => LICENSE_TYPE_CONFIGURATION_NAME,
+            'FriendlyName' => CONFIG_OPTION_LICENSE_TYPE,
             'Type' => 'text',
             'SimpleMode' => true,
         ],
         'period' => [
-            'FriendlyName' => LICENSE_PERIOD_CONFIGURATION_NAME,
+            'FriendlyName' => CONFIG_OPTION_LICENSE_PERIOD,
             'Type' => 'dropdown',
             'SimpleMode' => true,
             'Options' => [1 => 1, 12 => 12, 24 => 24],
@@ -72,6 +80,8 @@ function openprovider_ConfigOptions(): array
 
 /**
  * Function creates plesk license in Openprovider
+ *
+ * @see https://developers.whmcs.com/provisioning-modules/supported-functions/
  *
  * @param array $params available parameters from whmcs
  *
@@ -101,7 +111,12 @@ function openprovider_CreateAccount($params): string
 
     $createPleskLicenseResponse = makeApiCall($api, 'createPleskLicenseRequest', $argsCreatePleskLicense);
 
-    // I don't know why, but it works
+    // If you sleep one second, module logs in whmcs creates in right order:
+    // 1. createPleskLicenseRequest
+    // 2. retrievePleskLicenseRequest
+    // Otherwise there is a wrong order:
+    // 1. retrievePleskLicenseRequest
+    // 2. createPleskLicenseRequest
     sleep(1);
 
     if ($createPleskLicenseResponse->getCode() != 0) {
@@ -109,7 +124,6 @@ function openprovider_CreateAccount($params): string
     }
 
     $pleskLicenseKeyId = $createPleskLicenseResponse->getData()['key_id'];
-
     $getPleskLicenseResponse = makeApiCall($api, 'retrievePleskLicenseRequest', [
         'key_id' => $pleskLicenseKeyId
     ]);
@@ -119,15 +133,13 @@ function openprovider_CreateAccount($params): string
     }
 
     $pleskLicense = $getPleskLicenseResponse->getData();
-
     $licenseNumber = $pleskLicense['key_number'];
     $activationCode = $pleskLicense['activation_code'];
 
     try {
         $customFieldNames = getCustomFieldNames();
-
-        $params['model']->serviceProperties->save([$customFieldNames[0] => $licenseNumber]);
-        $params['model']->serviceProperties->save([$customFieldNames[1] => $activationCode]);
+        $params['model']->serviceProperties->save([$customFieldNames['license_number'] => $licenseNumber]);
+        $params['model']->serviceProperties->save([$customFieldNames['activation_code'] => $activationCode]);
     } catch (Exception $e) {
         return $e->getMessage();
     }
@@ -137,6 +149,8 @@ function openprovider_CreateAccount($params): string
 
 /**
  * Function returns HTML template for op-plesk product and product addon to display license data
+ *
+ * @see https://developers.whmcs.com/provisioning-modules/client-area-output/
  *
  * @param array $params available parameters from whmcs
  *
