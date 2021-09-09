@@ -35,7 +35,7 @@ class OpenproviderPleskModuleHelper
     public function initApi(string $username, string $password)
     {
         $this->api = new OpenproviderApi();
-        $this->api->getConfig()->setHost(OpenproviderApi::API_CTE_URL);
+        $this->api->getConfig()->setHost($this->api->getApiSettings()->getUrl());
 
         $tokenRequest = $this->call(ApiCommandNames::GENERATE_AUTH_TOKEN_REQUEST, [
             'username' => $username,
