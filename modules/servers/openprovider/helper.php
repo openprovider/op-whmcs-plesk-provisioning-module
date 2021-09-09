@@ -2,6 +2,7 @@
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'openprovider_api.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'response.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'command_names.php';
 
 class OpenproviderPleskModuleHelper
 {
@@ -36,7 +37,7 @@ class OpenproviderPleskModuleHelper
         $this->api = new OpenproviderApi();
         $this->api->getConfig()->setHost(OpenproviderApi::API_CTE_URL);
 
-        $tokenRequest = $this->call('generateAuthTokenRequest', [
+        $tokenRequest = $this->call(ApiCommandNames::GENERATE_AUTH_TOKEN_REQUEST, [
             'username' => $username,
             'password' => $password,
         ]);

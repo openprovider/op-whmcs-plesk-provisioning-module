@@ -5,6 +5,7 @@ if (!defined('WHMCS')) {
 }
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'helper.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'command_names.php';
 
 const META_DISPLAY_NAME = 'Openprovider Plesk';
 const META_API_VERSION = '1.1';
@@ -109,14 +110,14 @@ function openprovider_CreateAccount($params): string
         'period' => $period,
     ];
 
-    $createPleskLicenseResponse = $moduleHelper->call('createPleskLicenseRequest', $argsCreatePleskLicense);
+    $createPleskLicenseResponse = $moduleHelper->call(ApiCommandNames::CREATE_PLESK_LICENSE_REQUEST, $argsCreatePleskLicense);
 
     if ($createPleskLicenseResponse->getCode() != 0) {
         return $createPleskLicenseResponse->getMessage();
     }
 
     $pleskLicenseKeyId = $createPleskLicenseResponse->getData()['key_id'];
-    $getPleskLicenseResponse = $moduleHelper->call('retrievePleskLicenseRequest', [
+    $getPleskLicenseResponse = $moduleHelper->call(ApiCommandNames::RETRIEVE_PLESK_LICENSE_REQUEST, [
         'key_id' => $pleskLicenseKeyId
     ]);
 
