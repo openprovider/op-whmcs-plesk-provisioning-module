@@ -19,9 +19,7 @@ class ApiSettings
 
     public function __construct(string $settingsPath)
     {
-        $configsFilePath = __DIR__ . DIRECTORY_SEPARATOR . 'configs.json';
-
-        $configs = file_get_contents($configsFilePath);
+        $configs = file_get_contents($settingsPath);
 
         $this->clientName = $configs['client_name'] ?? 'whmcs-plesk-1';
         $this->url = $configs['url'] ?? 'https://api.openprovider.eu';
