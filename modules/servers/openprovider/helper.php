@@ -59,10 +59,10 @@ class OpenproviderPleskModuleHelper
      */
     public function loadConfigs(): array
     {
-        $configsFilePath = __DIR__ . DIRECTORY_SEPARATOR . 'configs.php';
+        $configsFilePath = __DIR__ . DIRECTORY_SEPARATOR . 'configs.json';
 
-        if ($configs = include $configsFilePath) {
-            return $configs;
+        if ($configs = file_get_contents($configsFilePath)) {
+            return (array) json_decode($configs);
         }
 
         return [];
