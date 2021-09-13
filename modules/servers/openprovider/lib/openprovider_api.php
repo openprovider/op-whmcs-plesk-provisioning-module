@@ -4,6 +4,7 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'response.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'last_request.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'command_mapping.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'api_configuration.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'api_settings.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'params_builder/params_creator_factory.php';
 
 use Openprovider\Api\Rest\Client\Base\Configuration;
