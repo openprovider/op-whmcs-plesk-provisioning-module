@@ -97,8 +97,8 @@ class OpenproviderPleskModuleHelper
     public function getCustomFieldNames(): array
     {
         return [
-            'license_number' => $this->configs['service_custom_fields_0'] ?? 'License Number',
-            'activation_code' => $this->configs['service_custom_fields_1'] ?? 'Activation Code',
+            'license_number' => $this->configs['license_number_name'] ?? 'License Number',
+            'activation_code' => $this->configs['activation_code_name'] ?? 'Activation Code',
         ];
     }
 

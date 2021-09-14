@@ -153,9 +153,15 @@ function openprovider_ClientArea($params): string
 {
     $customFieldNames = array_keys($params['customfields']);
     $moduleHelper = new OpenproviderPleskModuleHelper();
+    $customFieldNamesDefault = $moduleHelper->getCustomFieldNames();
 
     $licenseNumber = $params['model']->serviceProperties->get($customFieldNames[0]);
     $activationCode = $params['model']->serviceProperties->get($customFieldNames[1]);
 
-    return $moduleHelper->getHtmlTemplateFieldsForProductAddon($customFieldNames[0], $licenseNumber, $customFieldNames[1], $activationCode);
+    return $moduleHelper->getHtmlTemplateFieldsForProductAddon(
+        $customFieldNames[0] ?? $customFieldNamesDefault['license_number'],
+        $licenseNumber ?? '',
+        $customFieldNames[1] ?? $customFieldNamesDefault['activation_code'],
+        $activationCode ?? ''
+    );
 }
