@@ -4,6 +4,7 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'response.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'last_request.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'command_mapping.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'api_configuration.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'api_settings.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'params_builder/params_creator_factory.php';
 
 use Openprovider\Api\Rest\Client\Base\Configuration;
@@ -14,10 +15,6 @@ use Symfony\Component\Serializer\Serializer;
 
 class OpenproviderApi
 {
-    const API_CLIENT_NAME = 'whmcs-plesk-1';
-    const API_URL = 'https://api.openprovider.eu';
-    const API_CTE_URL = 'https://api.cte.openprovider.eu';
-
     /**
      * @var Configuration
      */
@@ -58,6 +55,11 @@ class OpenproviderApi
      */
     private $lastRequest;
 
+    /**
+     * @var ApiSettings
+     */
+    private $apiSettings;
+
     public function __construct()
     {
         $this->configuration = new Configuration();
@@ -65,9 +67,12 @@ class OpenproviderApi
         $this->apiConfig = new ApiConfig();
         $this->paramsCreatorFactory = new ParamsCreatorFactory();
         $this->serializer = new Serializer([new ObjectNormalizer(null, new CamelCaseToSnakeCaseNameConverter())]);
+
+        $this->apiSettings = new ApiSettings(__DIR__ . DIRECTORY_SEPARATOR . 'api.settings.json');
+
         $this->httpClient = new HttpClient([
             'headers' => [
-                'X-Client' => self::API_CLIENT_NAME
+                'X-Client' => $this->apiSettings->getClientName()
             ]
         ]);
     }
@@ -186,5 +191,10 @@ class OpenproviderApi
     public function getLastResponse(): Response
     {
         return $this->lastResponse;
+    }
+
+    public function getApiSettings(): ApiSettings
+    {
+        return $this->apiSettings;
     }
 }

@@ -1,4 +1,3 @@
 .idea
-/modules/servers/openprovider/configs.php
 /modules/servers/openprovider/vendor*
 /modules/servers/openprovider/license-types*

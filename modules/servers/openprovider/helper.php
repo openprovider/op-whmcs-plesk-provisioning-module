@@ -2,6 +2,7 @@
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'openprovider_api.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'response.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'command_names.php';
 
 class OpenproviderPleskModuleHelper
 {
@@ -34,9 +35,9 @@ class OpenproviderPleskModuleHelper
     public function initApi(string $username, string $password)
     {
         $this->api = new OpenproviderApi();
-        $this->api->getConfig()->setHost(OpenproviderApi::API_CTE_URL);
+        $this->api->getConfig()->setHost($this->api->getApiSettings()->getUrl());
 
-        $tokenRequest = $this->call('generateAuthTokenRequest', [
+        $tokenRequest = $this->call(ApiCommandNames::GENERATE_AUTH_TOKEN_REQUEST, [
             'username' => $username,
             'password' => $password,
         ]);
@@ -59,10 +60,10 @@ class OpenproviderPleskModuleHelper
      */
     public function loadConfigs(): array
     {
-        $configsFilePath = __DIR__ . DIRECTORY_SEPARATOR . 'configs.php';
+        $configsFilePath = __DIR__ . DIRECTORY_SEPARATOR . 'configs.json';
 
-        if ($configs = include $configsFilePath) {
-            return $configs;
+        if ($configs = file_get_contents($configsFilePath)) {
+            return (array) json_decode($configs);
         }
 
         return [];
@@ -97,9 +98,9 @@ class OpenproviderPleskModuleHelper
     public function getCustomFieldNames(): array
     {
         return [
-            'license_number' => $this->configs['service_custom_fields_0'] ?? 'License Number',
-            'activation_code' => $this->configs['service_custom_fields_1'] ?? 'Activation Code',
-            'license_name' => $this->configs['service_custom_fields_2'] ?? 'License Name',
+            'license_number' => $this->configs['license_number_name'] ?? 'License Number',
+            'activation_code' => $this->configs['activation_code_name'] ?? 'Activation Code',
+            'license_name' => $this->configs['license_name_name'] ?? 'License Name',
         ];
     }
 
