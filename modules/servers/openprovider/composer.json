@@ -1,5 +1,4 @@
 {
-    "name": "openprovider",
     "autoload": {
         "psr-4": {
             "OpenProvider\\WhmcsRegistrar\\": "./",
@@ -34,7 +33,7 @@
         }
     ],
     "scripts": {
-        "post-update-cmd": [
+        "post-install-cmd": [
             "OpenProvider\\WhmcsRegistrar\\scripts\\UpdateGuzzleNamespace::postUpdate",
             "composer dump-autoload"
         ]
