@@ -4,6 +4,7 @@ if (!defined('WHMCS')) {
     die('This file cannot be accessed directly');
 }
 
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'helper.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'command_names.php';
 
