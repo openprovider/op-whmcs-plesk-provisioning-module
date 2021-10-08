@@ -1,24 +1,10 @@
 # op-whmcs-provisioning-module
 ###### **Plesk** is the **#1** WebOps hosting platform created to help your customers run, automate and grow their websites, hosting businesses and applications.  Don't miss out on the opportunity to provide your customers with the best tools for their businesses. [Learn how Plesk licenses fit into your product portfolio!](https://openprovider.com/products/plesk-panel/)
 
-# Installation
+# Installation and setup
 
  1. Copy `./modules/servers/openprovider` into `<WHMCS directory>/modules/servers/openprovider` 
- 2. From the folder `<WHMCS directory>/modules/servers/openprovider` run the command `“composer update && composer install”`
 
-##### Choose appropriate names for the "License Number" and "Activation Code"  fields
-
-The module will create custom fields which you can use in email templates to your end users. 
-
-- Edit the `<WHMCS directory>/modules/servers/openprovider/configs.json` file with the desired translations for field names. Default translations are provided
-```json
-{
-  "license_number_name": "License Number",
-  "activation_code_name": "Activation Code",
-  "license_name_name": "License Name"
-}
-```
-Note that the field “License Name” is ignored in this version. Subsequent versions will use this variable.
 ### Email template variables
 
 The below variables can be used to display each product's license number and activation code in email templates
@@ -87,3 +73,17 @@ In the admin area, we can see the license number and activation code displayed.
 
 ![img](https://raw.githubusercontent.com/openprovider/op-whmcs-plesk-provisioning-module/images/images/addon-after-puchase.png)
 
+
+##### Changing names for the "License Number" and "Activation Code"  fields
+
+The module will create custom fields which you can use in email templates to your end users. If you'd like to change the names of these fields (for example a different translation) You can do the following:
+
+- Edit the `<WHMCS directory>/modules/servers/openprovider/configs.json` file with the desired translations for field names. Default translations are provided
+```json
+{
+  "license_number_name": "License Number",
+  "activation_code_name": "Activation Code",
+  "license_name_name": "License Name"
+}
+```
+Note that the field “License Name” is ignored in this version. Subsequent versions will use this variable.
