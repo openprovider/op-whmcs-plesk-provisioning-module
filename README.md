@@ -1,4 +1,4 @@
-# op-whmcs-provisioning-module
+# op-whmcs-plesk-provisioning-module
 ###### **Plesk** is the **#1** WebOps hosting platform created to help your customers run, automate and grow their websites, hosting businesses and applications.  Don't miss out on the opportunity to provide your customers with the best tools for their businesses. [Learn how Plesk licenses fit into your product portfolio!](https://openprovider.com/products/plesk-panel/)
 
 # Installation and setup
