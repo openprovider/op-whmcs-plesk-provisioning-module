@@ -108,14 +108,19 @@ class OpenproviderApi
         $this->lastRequest->setArgs($args);
         $this->lastRequest->setCommand($cmd);
 
+        $replaceVars = isset($args['password']) ? [
+            $args['password'],
+            htmlentities($args['password'])
+        ] : [];
+
         try {
             $paramsCreator = $this->paramsCreatorFactory->build($cmd);
             $requestParameters = $paramsCreator->createParameters($args, $service, $apiMethod);
             $reply = $service->$apiMethod(...$requestParameters);
         } catch (\Exception $e) {
             $responseData = $this->serializer->normalize(
-                    json_decode(substr($e->getMessage(), strpos($e->getMessage(), 'response:') + strlen('response:')))
-                ) ?? $e->getMessage();
+                json_decode(substr($e->getMessage(), strpos($e->getMessage(), 'response:') + strlen('response:')))
+            ) ?? $e->getMessage();
 
             $return = $this->failedResponse(
                 $response,
@@ -124,6 +129,23 @@ class OpenproviderApi
             );
             $this->lastResponse = $return;
 
+            if (isset($responseData['data']['token'])) {
+                $replaceVars[] = $responseData['data']['token'];
+            }
+
+            logModuleCall(
+                'OpenProvider Plesk',
+                $cmd,
+                json_encode($args),
+                json_encode([
+                    'code' => $this->api->getLastResponse()->getCode(),
+                    'message' => $this->api->getLastResponse()->getMessage(),
+                    'data' => $this->api->getLastResponse()->getData(),
+                ]),
+                null,
+                $replaceVars
+            );
+
             return $return;
         }
 
@@ -131,6 +153,23 @@ class OpenproviderApi
 
         $return = $this->successResponse($response, $data);
         $this->lastResponse = $return;
+
+        if (isset($data['token'])) {
+            $replaceVars[] = $data['token'];
+        }
+
+        logModuleCall(
+            'OpenProvider Plesk',
+            $cmd,
+            json_encode($args),
+            json_encode([
+                'code' => $this->api->getLastResponse()->getCode(),
+                'message' => $this->api->getLastResponse()->getMessage(),
+                'data' => $this->api->getLastResponse()->getData(),
+            ]),
+            null,
+            $replaceVars
+        );
 
         return $return;
     }
